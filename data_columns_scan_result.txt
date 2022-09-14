@@ -1,0 +1,83 @@
+#### raw data from kaggle\social media influencers - instagram.csv ####
+column[1]: Influencer insta name
+column[2]: instagram name
+column[3]: category_1
+column[4]: category_2
+column[5]: Followers
+column[6]: Audience country(mostly)
+column[7]: Authentic engagement
+column[8]: Engagement avg
+#### raw data from kaggle\social media influencers - tiktok.csv ####
+column[1]: Tiktoker name
+column[2]: Tiktok name
+column[3]: Subscribers count
+column[4]: Views avg.
+column[5]: Likes avg
+column[6]: Comments avg.
+column[7]: Shares avg
+#### raw data from kaggle\social media influencers - youtube.csv ####
+column[1]: youtuber name
+column[2]: channel name
+column[3]: Category
+column[4]: Subscribers
+column[5]: Audience Country
+column[6]: avg views
+column[7]: avg likes
+column[8]: avg comments
+#### raw data from kaggle\more\social media influencers - instagram sep-2022.csv ####
+column[1]: S.no
+column[2]: Instagram name
+column[3]: Name
+column[4]: Subscribers
+column[5]: Audience country
+column[6]: Authentic engagement
+column[7]: Engagement average
+column[8]: Category_1
+column[9]: Category_2
+#### raw data from kaggle\more\social media influencers - Tiktok sep 2022.csv ####
+column[1]: S.no
+column[2]: Tiktoker name
+column[3]: Tiktok name
+column[4]: Subscribers
+column[5]: Views avg.
+column[6]: Likes avg.
+column[7]: Comments avg.
+column[8]: Shares avg.
+#### raw data from kaggle\more\social media influencers - Youtube sep-2022.csv ####
+column[1]: S.no
+column[2]: Name
+column[3]: Youtuber
+column[4]: Country
+column[5]: Subscribers
+column[6]: Category_2
+column[7]: Avg. views
+column[8]: Avg. likes
+column[9]: Avg Comments
+column[10]: Category_3
+#### raw data from kaggle\more\social media influencers-instagram june 2022 - june 2022.csv ####
+column[1]: instagram name
+column[2]: influencer name
+column[3]: Category_1
+column[4]: Category_2
+column[5]: Subscribers count
+column[6]: Views avg.
+column[7]: Likes avg
+column[8]: Comments avg.
+#### raw data from kaggle\more\social media influencers-tiktok june 2022 - june 2022.csv ####
+column[1]: Tiktoker
+column[2]: influencer name
+column[3]: Subscribers count
+column[4]: Views avg.
+column[5]: Likes avg
+column[6]: Comments avg.
+column[7]: Shares avg
+#### raw data from kaggle\more\social media influencers-youtube june 2022 - june 2022.csv ####
+column[1]: channel name
+column[2]: youTuber
+column[3]: Category
+column[4]: Category_2
+column[5]: Subscribers count
+column[6]: Country
+column[7]: Views avg.
+column[8]: Likes avg
+column[9]: Comments avg.
