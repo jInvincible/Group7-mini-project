@@ -1,83 +1,58 @@
-#### raw data from kaggle\social media influencers - instagram.csv ####
-column[1]: Influencer insta name
-column[2]: instagram name
-column[3]: category_1
-column[4]: category_2
-column[5]: Followers
-column[6]: Audience country(mostly)
-column[7]: Authentic engagement
-column[8]: Engagement avg
-#### raw data from kaggle\social media influencers - tiktok.csv ####
-column[1]: Tiktoker name
-column[2]: Tiktok name
-column[3]: Subscribers count
-column[4]: Views avg.
-column[5]: Likes avg
-column[6]: Comments avg.
-column[7]: Shares avg
-#### raw data from kaggle\social media influencers - youtube.csv ####
-column[1]: youtuber name
-column[2]: channel name
-column[3]: Category
-column[4]: Subscribers
-column[5]: Audience Country
-column[6]: avg views
-column[7]: avg likes
-column[8]: avg comments
-#### raw data from kaggle\more\social media influencers - instagram sep-2022.csv ####
-column[1]: S.no
-column[2]: Instagram name
-column[3]: Name
-column[4]: Subscribers
-column[5]: Audience country
-column[6]: Authentic engagement
-column[7]: Engagement average
-column[8]: Category_1
-column[9]: Category_2
-#### raw data from kaggle\more\social media influencers - Tiktok sep 2022.csv ####
-column[1]: S.no
-column[2]: Tiktoker name
-column[3]: Tiktok name
-column[4]: Subscribers
-column[5]: Views avg.
-column[6]: Likes avg.
-column[7]: Comments avg.
-column[8]: Shares avg.
-#### raw data from kaggle\more\social media influencers - Youtube sep-2022.csv ####
-column[1]: S.no
-column[2]: Name
-column[3]: Youtuber
-column[4]: Country
-column[5]: Subscribers
-column[6]: Category_2
-column[7]: Avg. views
-column[8]: Avg. likes
-column[9]: Avg Comments
-column[10]: Category_3
-#### raw data from kaggle\more\social media influencers-instagram june 2022 - june 2022.csv ####
-column[1]: instagram name
-column[2]: influencer name
-column[3]: Category_1
-column[4]: Category_2
-column[5]: Subscribers count
-column[6]: Views avg.
-column[7]: Likes avg
-column[8]: Comments avg.
-#### raw data from kaggle\more\social media influencers-tiktok june 2022 - june 2022.csv ####
-column[1]: Tiktoker
-column[2]: influencer name
-column[3]: Subscribers count
-column[4]: Views avg.
-column[5]: Likes avg
-column[6]: Comments avg.
-column[7]: Shares avg
-#### raw data from kaggle\more\social media influencers-youtube june 2022 - june 2022.csv ####
-column[1]: channel name
-column[2]: youTuber
-column[3]: Category
-column[4]: Category_2
-column[5]: Subscribers count
-column[6]: Country
-column[7]: Views avg.
-column[8]: Likes avg
-column[9]: Comments avg.
+#### (raw data\Dataset_World cup.xlsx) -- sheet (All matchs) ####
+column[1]: Year
+column[2]: Datetime
+column[3]: Stage
+column[4]: Stadium
+column[5]: City
+column[6]: Home Team Name
+column[7]: Home Team Goals
+column[8]: Away Team Goals
+column[9]: Away Team Name
+column[10]: Win conditions
+column[11]: Attendance
+column[12]: Half-time Home Goals
+column[13]: Half-time Away Goals
+column[14]: Referee
+column[15]: Assistant 1
+column[16]: Assistant 2
+column[17]: RoundID
+column[18]: MatchID
+column[19]: Home Team Initials
+column[20]: Away Team Initials
+#### (raw data\Dataset_World cup.xlsx) -- sheet (Rank) ####
+column[1]: YEAR
+column[2]: HOST
+column[3]: CHAMPION
+column[4]: RUNNER UP
+column[5]: THIRD PLACE
+column[6]: FOURTH PLACE
+column[7]: TEAMS
+column[8]: MATCHES PLAYED
+column[9]: GOALS SCORED
+column[10]: AVG GOALS PER GAME
+column[11]: ATTENDANCE
+#### (raw data\Dataset_World cup.xlsx) -- sheet (Rank_detail) ####
+column[1]: Year
+column[2]: Position
+column[3]: Team
+column[4]: Games Played
+column[5]: Win
+column[6]: Draw
+column[7]: Loss
+column[8]: Goals For
+column[9]: Goals Against
+column[10]: Goal Difference
+column[11]: Points
+#### (raw data\Dataset_World cup.xlsx) -- sheet (Starting) ####
+column[1]: RoundID
+column[2]: MatchID
+column[3]: Team Initials
+column[4]: Coach Name
+column[5]: Line-up
+column[6]: Shirt Number
+column[7]: Player Name
+column[8]: Position
+column[9]: Event
+#### (raw data\Dataset_World cup.xlsx) -- sheet (Starting_note) ####
+column[1]: event
+column[2]: Unnamed: 1
