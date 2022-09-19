@@ -6,6 +6,7 @@ import pandas as pd
 ## MAIN
 url = 'https://web.archive.org/web/20200224034607/https://www.fifa.com/worldcup/archive/russia2018/matches/#groupphase'
 url1 = 'https://web.archive.org/web/20200224034607/https://www.fifa.com/worldcup/archive/russia2018/matches/#knockoutphase'
+
 # content of URL
 r = requests.get(url)
 r1 = requests.get(url1)
@@ -74,8 +75,10 @@ for away in f_away:
 r_matchid = soup.find_all('a', attrs='fi-mu__link')
 matchid_list = [r.contents[1].attrs['data-id'] for r in r_matchid]
 
-
-
+url_match = 'https://en.wikipedia.org/wiki/2018_FIFA_World_Cup#Group_stage'
+r_match = requests.get(url_match)
+soup_match = bs4.BeautifulSoup(r_match.text, 'html.parser')
+r_match = soup_match.find_all('script')
 
 # create dataframe Year, Datetime, Stage, Stadium, Home Team Name,
 # Home Team Goals, Away Team Goals, Away Team Name, Attendance, RoundID,
@@ -93,4 +96,5 @@ df = pd.DataFrame({'Datetime': s_date_time, 'Stage': s_stage,
                    'Home Team Goals': s_home_team_goals, 'Away Team Goals':
                        s_away_team_goals, 'Away Team Name': s_away_team_name,
                    'MatchID': s_matchid})
-
+# save all collecting data to an excel file
+df.to_excel('Russia2018.xlsx', sheet_name='All matchs')

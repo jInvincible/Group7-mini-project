@@ -4,4 +4,9 @@ describe:
 ###
 function = data_columns_scan.py
 describe: return all columns name of csv files under source_path to 'data_columns_scan_result'
-
+###
+function = raw data/test.py
+describe: get data for Russia2018 World Cup from "https://web.archive.org/web/20200224034607/https://www.fifa.com/worldcup/archive/russia2018"
+###
+function = collect data from wikipedia.py
+describe: get data from wikipedia World Cup
