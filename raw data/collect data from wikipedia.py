@@ -89,20 +89,6 @@ a_check_parent = a_check.parent
 b_check = a_check_parent.findNext(attrs='mw-headline', text='Group B')
 
 cdata_all = cdata_group_list + cdata_knockout_list
-for section in soup_main.find_all(cdata_all):
-    current = section
-    while True:
-        current = current.nextSibling
-        try:
-            tag_text = current.text
-        except AttributeError:
-            tag_text = ''
-        if tag_text == 'Group B':
-            break
-        else:
-            matches_info = current.find(attrs={'class': 'footballbox'})
-
-
 
 # # create url_list
 # url_group = [f'{url_main}_{group}' for group in group_list]
