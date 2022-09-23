@@ -28,38 +28,25 @@ REPLACEMENTS = [
     ('style', {}, 'b', {}, '')
 ]
 
-# all columns in sheet 'All matches'
-columns_matchid = []
-columns_match_report_link = []
-columns_h_number = []
-columns_h_name = []
-columns_h_position = []
-columns_a_position = []
-columns_a_number = []
-columns_a_name = []
-columns_h_event = []
-columns_a_event = []
-
-
 y_ff =[
-    '1930',
-    '1934',
-    '1938',
-    '1950',
-    '1954',
-    '1958',
-    '1962',
-    '1966',
-    '1970',
-    '1974',
-    '1978',
-    '1982',
-    '1986',
-    '1990',
-    '1994',
-    '1998',
-    '2002',
-    '2006',
+    # '1930',
+    # '1934',
+    # '1938',
+    # '1950',
+    # '1954',
+    # '1958',
+    # '1962',
+    # '1966',
+    # '1970',
+    # '1974',
+    # '1978',
+    # '1982',
+    # '1986',
+    # '1990',
+    # '1994',
+    # '1998',
+    # '2002',
+    # '2006',
     '2010',
     '2014',
     '2018'
@@ -103,7 +90,7 @@ for url_main in urls:
 
     # for testing-only
     # group_list = []
-    df_total_starting = pd.DataFrame(None, columns=['MatchID', 'HT Role', 'HT Shirt Number', 'HT Full Name', 'HT Discipline', 'HT In/Out', 'AT Role', 'AT Shirt Number', 'AT Full Name', 'AT Discipline', 'AT In/Out'])
+    df_total_starting = pd.DataFrame(None, columns=['MatchID', 'HT Role', 'HT Shirt Number', 'HTFull Name', 'HT Discipline', 'HT In/Out', 'AT Role', 'AT Shirt Number', 'AT Full Name', 'AT Discipline', 'AT In/Out'])
 
     all_round_list = group_list + ['knockout stage']
     for rounds in all_round_list:
@@ -131,16 +118,17 @@ for url_main in urls:
                 match_info.find('a', text='Report')['href']).group(0)
 
             # get starting tag
-            tag_starting_table = match_info.findNextSiblings('table', limit=2)[1]
+            # tag_starting_table = match_info.findNextSiblings('table', limit=2)[1]
+            tag_starting_table = match_info.nextSibling.nextSibling
 
             # get tag of home team starting
-            tag_h = tag_starting_table.tr.td
+            tag_h = tag_starting_table.tr.findChildren("td", recursive=False)[0]
 
             # get tag of away team starting
-            tag_a = tag_h.find_next_siblings('td')[1]
+            tag_a = tag_starting_table.tr.findChildren("td", recursive=False)[-1]
             row = []
             hdata = []
-            for tr in tag_h.table.find_all('tr'):
+            for tr in tag_h.find_all('tr'):
                 td = [i.text for i in tr.find_all('td')]
                 row = [i for i in td]
                 hdata.append(row)
@@ -154,8 +142,10 @@ for url_main in urls:
             df_hdata.loc[ht_m_index, 2] = ht_manager
             df_hdata = df_hdata.drop(index=len(df_hdata)-1)
 
+
             row = []
             adata = []
+            adata_dic = {'at role':'', 'at shirt number': '', 'at fullname':'', 'at discipline': '', 'at in_out': ''}
             for tr in tag_a.table.find_all('tr'):
                 td = [i.text for i in tr.find_all('td')]
                 row = [i for i in td]
@@ -172,7 +162,7 @@ for url_main in urls:
 
 
             df_starting = pd.concat([pd.Series(match_id), df_hdata, df_adata], axis=1)
-            df_starting.columns = ['MatchID', 'HT Role', 'HT Shirt Number', 'HT Full Name', 'HT Discipline', 'HT In/Out', 'AT Role', 'AT Shirt Number', 'AT Full Name', 'AT Discipline', 'AT In/Out']
+            df_starting.columns = ['MatchID', 'HT Role', 'HT Shirt Number', 'HT FullName', 'HT Discipline', 'HT In/Out', 'AT Role', 'AT Shirt Number', 'AT Full Name', 'AT Discipline', 'AT In/Out']
             df_starting['MatchID'] = match_id
 
             # append collecting data to corresponding columns
