@@ -160,12 +160,13 @@ for url_main in urls:
                          soup_fevent.find('a',text='Report')['href']).group(0)
         datetime_string = tags_['fleft'][i]
         soup_fdate = bs4.BeautifulSoup(str(datetime_string), 'html.parser')
-        cut_date = re.search('.+(?=\()', match_info.find(attrs='fdate').text)
         # cut redundant of date
+        cut_date = re.search('.+(?=\()', soup_fdate.find(attrs='fdate').text)
         if cut_date != None:
             match_date = cut_date.group(0)
         else:
-            match_date = match_info.find(attrs='fdate').text
+            match_date = soup_fdate.find(attrs='fdate').text
+
         if tag_fscore_a != None:
             a_href = tag_fscore_a['href']
             # handle 2018, 2014, 2010, 2006, 1970, 1954 note, extra time note, overtime
