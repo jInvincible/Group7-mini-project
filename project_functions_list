@@ -1,12 +1,27 @@
 ###
 function =
 describe:
+version note
 ###
 function = data_columns_scan.py
 describe: return all columns name of csv files under source_path to 'data_columns_scan_result'
 ###
 function = raw data/test.py
 describe: get data for Russia2018 World Cup from "https://web.archive.org/web/20200224034607/https://www.fifa.com/worldcup/archive/russia2018"
+version note: statblized, only collect little data
 ###
-function = collect data from wikipedia.py
+function = collect data from wikipedia v1.py
 describe: get data from wikipedia World Cup
+version note: only collect little data from main wikipedia, no tag check for collected data
+###
+function = collect data from wikipedia v2.py
+describe: get data from wikipedia World Cup
+version note: only collect little data(all matches info (exclude goal events, matches details)) from main wikipedia, done tag check for collected data
+###
+function = collect data from wikipedia v2.py
+describe: get data from wikipedia World Cup
+version note: collect almost needed data(all matches info, matches details (exclude goal events)) from main wikipedia, done tag check for collected data
+###
+function = collect data from wikipedia v3.py
+describe: get data from wikipedia World Cup
+version note: implement base on version 2, collect almost needed data(all matches info, matches details (exclude goal events)) from main wikipedia, done tag check for collected data
