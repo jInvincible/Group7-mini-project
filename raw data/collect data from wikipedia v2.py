@@ -196,7 +196,6 @@ for url_main in urls:
             match_attendance = re.search('[\d,]+', re.search('Attendance[^<>]+', str(soup_stadium.find('div'))).group(0)).group(0)
         #re.search('Attendance[^<>]+', str(soup_stadium.find('div'))).group(0)
 
-        match_year = re.search('[\d]+', url_main).group(0)
 
         # append collecting data to corresponding columns
         columns_year.append(match_year)
@@ -224,6 +223,9 @@ for url_main in urls:
             # ex: https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_Group_A
             r_main = requests.get(url_main)
 
+            # get match_year from url
+            match_year = re.search('[\d]+', url_main).group(0)
+
             # soup r_main and reformat/encode(UTF-8) ++
             soup_main = bs4.BeautifulSoup(replace_tags_with_labels(r_main,
                  replacements=REPLACEMENTS).replace('\n', ''), 'html.parser')
@@ -231,8 +233,8 @@ for url_main in urls:
                                           'html.parser')
             # get tags of all matches
             all_matches_info = soup_main.findAll(attrs='footballbox')
-
             for match_info in all_matches_info:
+
                 match_stage = rounds
                 cut_date = re.search('.+(?=\()',
                                      match_info.find(attrs='fdate').text)
@@ -258,7 +260,7 @@ for url_main in urls:
                 match_info.find(attrs='fscore').text.split('–')[1]
                 match_id = re.search('[\d]+(?=\/$)|[\d]+$|[\d]+(?=\/i)|[\d]+(?=\/r)|[\d]+(?=/\#)',
                          soup_fevent.find('a',text='Report')['href']).group(0)
-                match_year = re.search('[\d]+', url_main).group(0)
+
 
                 # append collecting data to corresponding columns
                 columns_year.append(match_year)
