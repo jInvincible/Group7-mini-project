@@ -50,7 +50,7 @@ df_total_starting = pd.DataFrame(None, columns=['MatchID',
                                                 'AT Fullname',
                                                 'AT Discipline', 'AT In_Out'])
 
-df_total_group_starting = pd.DataFrame(None, columns=['MatchID',
+df_group_starting = pd.DataFrame(None, columns=['MatchID',
                                                       'HT Role',
                                                       'HT Shirt Number',
                                                       'HT Fullname',
@@ -62,20 +62,20 @@ df_total_group_starting = pd.DataFrame(None, columns=['MatchID',
                                                       'AT Discipline',
                                                       'AT In_Out'])
 
-df_total_all_matches = pd.DataFrame(None, columns=['Year', 'Stage', 'Date', 'Time',
+df_total_matches = pd.DataFrame(None, columns=['Year', 'Stage', 'Date', 'Time',
                                              'Stadium',	'Location',	'Home Team',
                                              'HT Goals', 'AT Goals', 'Away Team',
                                              'Match Attendance', 'MatchID'
                                              ])
 
-df_total_group_all_matches = pd.DataFrame(None, columns=['Year', 'Stage', 'Date', 'Time',
+df_group_matches = pd.DataFrame(None, columns=['Year', 'Stage', 'Date', 'Time',
                                              'Stadium',	'Location',	'Home Team',
                                              'HT Goals', 'AT Goals', 'Away Team',
                                              'Match Attendance', 'MatchID'
                                              ])
 
 y_ff = [
-    '1930',
+    '1930'
     '1934',
     '1938',
     '1950',
@@ -155,7 +155,9 @@ for url_main in urls:
     # create group_list and knockout_list to get list of navigating url
     headline_group = soup_main.find_all(attrs='mw-headline',
                                         text=cdata_group_list)
-    group_list = [group.text for group in headline_group]
+    group_list = list(set([group.text for group in headline_group]))
+    group_list.sort()
+
 
     # # for testing-only
     # group_list = ['Group 1']
@@ -167,6 +169,8 @@ for url_main in urls:
     # 1950 World cup Final stage = final round
     if '1950' in url_main:
         all_round_list = group_list + ['final round']
+    elif '1934' in url_main or '1938' in url_main:
+        all_round_list = group_list + ['final_tournament']
     else:
         all_round_list = group_list + ['knockout stage']
 
@@ -254,7 +258,10 @@ for url_main in urls:
                               ).text.split(',')[1]
 
             # attendance
-            match_attendance = re.search('[\d,]+', re.search('Attendance[^<>]+',
+            if match_id == 'w/o detail in /wiki/Walkover':
+                match_attendance == f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
+            else:
+                match_attendance = re.search('[\d,]+', re.search('Attendance[^<>]+',
                                                              str(soup_stadium.findAll(
                                                                  'div'))).group(
                 0)).group(0)
@@ -322,6 +329,8 @@ for url_main in urls:
             if match_id in ['1689', '2350', '2454', '2352', '2431', '2220',
                             '2196', '2252']:
                 tag_starting_table = match_info.nextSibling.nextSibling.nextSibling
+            elif match_id == 'w/o detail in /wiki/Walkover':
+                # tiep theo
             else:
                 tag_starting_table = match_info.nextSibling.nextSibling
             # for some match with no starting info
@@ -399,56 +408,59 @@ for url_main in urls:
                     df_starting.at[0, column] = 'missing'
                 df_starting['MatchID'] = match_id
 
-            # append collecting data of the current match to corresponding columns of sheet Match Details
-            print(
-                f'WorldCup {match_year} : {rounds} :: MatchID = {match_id}')
-            df_total_group_starting = pd.concat(
-                [df_total_group_starting, df_starting])
-
             # make df_matches for all collected data
-            df_matches = pd.DataFrame({'Year': [match_year], 'Stage': [match_stage], 'Date': [match_date], 'Time': [match_time],
-                                             'Stadium': [match_stadium],	'Location': [match_location],	'Home Team': [home_team_name],
-                                             'HT Goals': [home_team_f_score], 'AT Goals': [away_team_f_score], 'Away Team': [away_team_name],
-                                             'Match Attendance': [match_attendance], 'MatchID': [match_id]
-                                      })
+            df_matches = pd.DataFrame(
+                {'Year': [match_year], 'Stage': [match_stage],
+                 'Date': [match_date], 'Time': [match_time],
+                 'Stadium': [match_stadium], 'Location': [match_location],
+                 'Home Team': [home_team_name],
+                 'HT Goals': [home_team_f_score],
+                 'AT Goals': [away_team_f_score],
+                 'Away Team': [away_team_name],
+                 'Match Attendance': [match_attendance],
+                 'MatchID': [match_id]
+                 })
+            print(f'WorldCup {match_year} : {rounds} :: MatchID = {match_id}')
 
-            # append collecting data of current match to corresponding columns of sheet All Matches
-            df_total_group_all_matches = pd.concat([df_total_group_all_matches, df_matches])
+            # append collecting data of the current match to corresponding columns of sheet Match Details
+            df_group_starting = pd.concat(
+                    [df_group_starting, df_starting])
 
-        # append collecting data of the current group to corresponding columns of sheet Match Details
-        df_total_starting = pd.concat(
-            [df_total_starting, df_total_group_starting])
-
-        # append collecting data of current group to corresponding columns of sheet All Matches
-        df_total_all_matches = pd.concat([df_total_all_matches,df_total_group_all_matches])
-
-        # clear df_total_group_starting for next round
-        df_total_group_starting = pd.DataFrame(None, columns=['MatchID',
-                                                              'HT Role',
-                                                              'HT Shirt Number',
-                                                              'HT Fullname',
-                                                              'HT Discipline',
-                                                              'HT In_Out',
-                                                              'AT Role',
-                                                              'AT Shirt Number',
-                                                              'AT Fullname',
-                                                              'AT Discipline',
-                                                              'AT In_Out'])
-
-        # clear df_total_group_all_matches for next round
-        df_total_group_all_matches = pd.DataFrame(None,
-                                                  columns=['Year', 'Stage',
-                                                           'Date', 'Time',
-                                                           'Stadium',
-                                                           'Location',
-                                                           'Home Team',
-                                                           'HT Goals',
-                                                           'AT Goals',
-                                                           'Away Team',
-                                                           'Match Attendance',
-                                                           'MatchID'
-                                                           ])
-
+                # append collecting data of current match to corresponding columns of sheet All Matches
+            df_group_matches = pd.concat([df_group_matches, df_matches])
         url_main = url_temp1
-df_total_all_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
-df_total_starting.to_excel('Fifa_world_cup_matchDetails.xlsx', sheet_name='Match Details')
+    # # append to total
+    # df_total_matches = pd.concat([df_total_matches, df_group_matches])
+    # df_total_starting = pd.concat([df_total_starting, df_group_starting])
+
+    # # clear df_total_group_starting for next round
+    # df_group_starting = pd.DataFrame(None, columns=['MatchID',
+    #                                                       'HT Role',
+    #                                                       'HT Shirt Number',
+    #                                                       'HT Fullname',
+    #                                                       'HT Discipline',
+    #                                                       'HT In_Out',
+    #                                                       'AT Role',
+    #                                                       'AT Shirt Number',
+    #                                                       'AT Fullname',
+    #                                                       'AT Discipline',
+    #                                                       'AT In_Out'])
+    #
+    # # clear df_total_group_all_matches for next round
+    # df_group_all_matches = pd.DataFrame(None,
+    #                                           columns=['Year', 'Stage',
+    #                                                    'Date', 'Time',
+    #                                                    'Stadium',
+    #                                                    'Location',
+    #                                                    'Home Team',
+    #                                                    'HT Goals',
+    #                                                    'AT Goals',
+    #                                                    'Away Team',
+    #                                                    'Match Attendance',
+    #                                                    'MatchID'
+    #                                                    ])
+
+
+
+df_group_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
+df_group_starting.to_excel('Fifa_world_cup_matchDetails.xlsx', sheet_name='Match Details')
