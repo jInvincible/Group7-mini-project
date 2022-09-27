@@ -42,40 +42,39 @@ pattern_list = ['\\b[A-Z]{2}\\b|Manager.',
                 '\\b[O|I](\\xa0)[\d]{1,2}'
                 ]
 
-df_total_starting = pd.DataFrame(None, columns=['MatchID',
-                                                'HT Role', 'HT Shirt Number',
-                                                'HT Fullname',
-                                                'HT Discipline', 'HT In_Out',
-                                                'AT Role', 'AT Shirt Number',
-                                                'AT Fullname',
-                                                'AT Discipline', 'AT In_Out'])
-
 df_group_starting = pd.DataFrame(None, columns=['MatchID',
-                                                      'HT Role',
-                                                      'HT Shirt Number',
-                                                      'HT Fullname',
-                                                      'HT Discipline',
-                                                      'HT In_Out',
-                                                      'AT Role',
-                                                      'AT Shirt Number',
-                                                      'AT Fullname',
-                                                      'AT Discipline',
-                                                      'AT In_Out'])
+                                               'HT Role',
+                                               'HT Captain',
+                                               'HT Shirt Number',
+                                               'HT Fullname',
+                                               'HT Discipline',
+                                               'HT In_Out',
+                                               'HT Goal',
+                                               'AT Goal',
+                                               'AT Role',
+                                               'AT Captain',
+                                               'AT Shirt Number',
+                                               'AT Fullname',
+                                               'AT Discipline',
+                                               'AT In_Out'
+                                               ])
 
-df_total_matches = pd.DataFrame(None, columns=['Year', 'Stage', 'Date', 'Time',
-                                             'Stadium',	'Location',	'Home Team',
-                                             'HT Goals', 'AT Goals', 'Away Team',
-                                             'Match Attendance', 'MatchID'
-                                             ])
-
-df_group_matches = pd.DataFrame(None, columns=['Year', 'Stage', 'Date', 'Time',
-                                             'Stadium',	'Location',	'Home Team',
-                                             'HT Goals', 'AT Goals', 'Away Team',
-                                             'Match Attendance', 'MatchID'
-                                             ])
+df_group_matches = pd.DataFrame(None, columns=['Year',
+                                               'Stage',
+                                               'Date',
+                                               'Time',
+                                               'Stadium',
+                                               'Location',
+                                               'Home Team',
+                                               'HT Goals',
+                                               'AT Goals',
+                                               'Away Team',
+                                               'Match Attendance',
+                                               'MatchID'
+                                               ])
 
 y_ff = [
-    '1930'
+    '1930',
     '1934',
     '1938',
     '1950',
@@ -133,6 +132,93 @@ def allocate_corresponding_data_columns(adata, pattern_list=pattern_list):
     return a_dic
 
 
+def cleanup_fgoals(fgoals_collect):
+    for _ in range(4):
+        index_to_remove = []
+        for i, word in enumerate(fgoals_collect):
+            if word == 'Penalty kick (association football)' or word == 'Own goal':
+                index_to_remove.append(i)
+            elif len(word) <= 3:
+                index_to_remove.append(i)
+            elif word in fgoals_collect[i - 1] and i != 0:
+                index_to_remove.append(i)
+
+        index_to_remove.sort(reverse=True)
+        for i in index_to_remove:
+            fgoals_collect.pop(i)
+    # for testing only {'Romário':["G 26'", "G 52'\xa0(pen.)"]}
+    star_event_dict = {}
+    key = ''
+    for name in fgoals_collect:
+        try:
+            re.search('\\bG\s\d+', name).group(0)
+            name.replace('\xa0','')
+            star_event_dict[key] += [name]
+        except AttributeError:
+            if len(name.split('(')) > 0:
+                name = name.split('(')[0]
+            star_event_dict[name] = []
+            key = name
+
+    star = list(star_event_dict)
+    event = []
+    for key in star:
+        str1 = ', '.join([str(ele) for ele in star_event_dict[key]])
+        event.append(str1)
+
+    return star, event
+
+# def check_loc(df_name, starnameh, starnamea, fullname_h, fullname_a,
+#               g_event_h, g_event_a):
+#     row_value_dict = {}
+#     name_column_list = [name_column1, name_column2]
+#     for name_column in name_column_list:
+#         for i, name in enumerate(df_name[name_column]):
+#             if df_name[df_name[name_target_check] == name].size > 0:
+#                 row_index = df_name[df_name[name_target_check] == name].index[0]
+#                 if row_index in row_value_dict:
+#                     row_value_dict[row_index] += ', '
+#                     if name_column == name_column1:
+#                         row_value_dict[row_index] += [df_name.loc[i][name_get_value1]]
+#                     else:
+#                         row_value_dict[row_index] += [df_name.loc[i][name_get_value2]]
+#                 else:
+#                     if name_column == name_column1:
+#                         row_value_dict[row_index] = [df_name.loc[i][name_get_value1]]
+#                     else:
+#                         row_value_dict[row_index] = [df_name.loc[i][name_get_value2]]
+#
+#     return row_value_dict
+
+def check_loc(df_name, starnameh, starnamea, fullname_h, fullname_a,
+              g_event_h, g_event_a):
+    row_value_dict_h = {}
+    row_value_dict_a = {}
+    for row_event, content_h in enumerate(df_name[g_event_h]):
+        content_h = str(content_h)
+        if content_h != 'None' and content_h != 'nan':
+            if '(o.g.)' not in content_h:
+                if df_name[df_name[fullname_h] == df_name.loc[row_event][starnameh]].size > 0:
+                    row_index = df_name[df_name[fullname_h] == df_name.loc[row_event][starnameh]].index[0]
+                    row_value_dict_h[row_index] = content_h
+            else:
+                if df_name[df_name[fullname_a] == df_name.loc[row_event][starnameh]].size > 0:
+                    row_index = df_name[df_name[fullname_a] == df_name.loc[row_event][starnameh]].index[0]
+                    row_value_dict_a[row_index] = content_h
+    for row_event, content_a in enumerate(df_name[g_event_a]):
+        content_a = str(content_a)
+        if content_a != 'None' and content_a != 'nan':
+            if '(o.g.)' not in content_a:
+                if df_name[df_name[fullname_a] == df_name.loc[row_event][starnamea]].size > 0:
+                    row_index = df_name[df_name[fullname_a] == df_name.loc[row_event][starnamea]].index[0]
+                    row_value_dict_a[row_index] = content_a
+            else:
+                if df_name[df_name[fullname_h] == df_name.loc[row_event][starnamea]].size > 0:
+                    row_index = df_name[df_name[fullname_h] == df_name.loc[row_event][starnamea]].index[0]
+                    row_value_dict_h[row_index] = content_a
+    return row_value_dict_h, row_value_dict_a
+
+
 # end custom functions
 
 # main
@@ -155,25 +241,21 @@ for url_main in urls:
     # create group_list and knockout_list to get list of navigating url
     headline_group = soup_main.find_all(attrs='mw-headline',
                                         text=cdata_group_list)
+
+    # drop duplicate in group list and sort ascending
     group_list = list(set([group.text for group in headline_group]))
     group_list.sort()
 
-
-    # # for testing-only
-    # group_list = ['Group 1']
-    # df_total_starting = pd.DataFrame(None, columns=['MatchID',
-    #                             'HT Role', 'HT Shirt Number', 'HT Fullname',
-    #                             'HT Discipline', 'HT In_Out',
-    #                             'AT Role', 'AT Shirt Number', 'AT Fullname',
-    #                             'AT Discipline', 'AT In_Out'])
     # 1950 World cup Final stage = final round
     if '1950' in url_main:
         all_round_list = group_list + ['final round']
-    elif '1934' in url_main or '1938' in url_main:
-        all_round_list = group_list + ['final_tournament']
+    # elif '1934' in url_main or '1938' in url_main:
+    #     all_round_list = group_list + ['final_tournament']
     else:
         all_round_list = group_list + ['knockout stage']
 
+    # # for testing-only, remove for full execute
+    # all_round_list = ['Group 1']
 
     for rounds in all_round_list:
         # make a backtup url
@@ -186,10 +268,8 @@ for url_main in urls:
 
         # soup r_main and reformat/encode(UTF-8) ++
         soup_main = bs4.BeautifulSoup(replace_tags_with_labels(r_main,
-                                                               replacements=REPLACEMENTS).replace(
-            '\n', ''), 'html.parser')
-        soup_main = bs4.BeautifulSoup(soup_main.encode('UTF-8'),
-                                      'html.parser')
+               replacements=REPLACEMENTS).replace('\n', ''), 'html.parser')
+        soup_main = bs4.BeautifulSoup(soup_main.encode('UTF-8'), 'html.parser')
         # get tags of all matches
         all_matches_info = soup_main.findAll(attrs='footballbox')
 
@@ -211,6 +291,8 @@ for url_main in urls:
             # check tag_fscore_a and receive HT F Score + AT F Score + time
             tag_fscore_a = match_info.find(attrs='fscore').find('a')
             slash_text = re.search('[\D]+', match_info.find(attrs='fscore').text).group(0)
+
+            # when tag_fscore_a persist
             if tag_fscore_a != None:
                 a_href = tag_fscore_a['href']
                 # handle 2018, 2014, 2010, 2006, 1970, 1954 note, extra time note, overtime
@@ -244,7 +326,27 @@ for url_main in urls:
             else:
                 match_date = match_info.find(attrs='fdate').text
 
+            # get fhgoal, fagoal tags
+            fgoals = match_info.find(attrs={'class': ['fgoals']})
+            fhgoal = fgoals.find(attrs={'class': 'fhgoal'})
+            fagoal = fgoals.find(attrs={'class': 'fagoal'})
+            fhgoal_collect = [
+                i.attrs['title'].strip() if i.name == 'a' else i.text.strip()
+                for i in fhgoal.select('a[title],span')]
+            fagoal_collect = [
+                i.attrs['title'].strip() if i.name == 'a' else i.text.strip()
+                for i in fagoal.select('a[title],span')]
 
+            # cleanup and allocate data hgoal and agoal
+            hgoal_event = cleanup_fgoals(fhgoal_collect)
+            agoal_event = cleanup_fgoals(fagoal_collect)
+
+            # make df_fhgoal, df_fagoal as table receive starnames and goal
+            # events for both team
+            df_hgoal = pd.DataFrame(
+                {'Starname_h': hgoal_event[0], 'Goal_eventh': hgoal_event[1]})
+            df_agoal = pd.DataFrame(
+                {'Starname_a': agoal_event[0], 'Goal_eventa': agoal_event[1]})
 
             # stadium
             soup_stadium = match_info.find(attrs='fright')
@@ -259,69 +361,12 @@ for url_main in urls:
 
             # attendance
             if match_id == 'w/o detail in /wiki/Walkover':
-                match_attendance == f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
+                match_attendance = f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
             else:
                 match_attendance = re.search('[\d,]+', re.search('Attendance[^<>]+',
                                                              str(soup_stadium.findAll(
                                                                  'div'))).group(
                 0)).group(0)
-
-            # get h_goal event
-            # fhgoal = match_info.find(attrs='fhgoal')
-            # if fhgoal != '':
-            #     g_hcheck = [i.attrs['title'].strip() if i.name == 'a' else i.text.strip() for i in fhgoal.select('a[title],span')]
-            #     for item in g_hcheck:
-            #         if item == "\'":
-            #             list.remove(g_hcheck, item)
-            #         if len(item) == 3:
-            #             list.remove(g_hcheck, item)
-            #
-            # if fhgoal != '':
-            #     g_hcheck = fhgoal.text.replace(',', 'mergeupG ').split('\'')
-            #     for i, item in enumerate(g_hcheck):
-            #         if 'mergeupG' in item:
-            #             g_hcheck[i-1] += f",{item.replace('mergeup', ' ')}"
-            #             list.pop(g_hcheck, i)
-            #         if item == '':
-            #             list.pop(g_hcheck, i)
-            #         if item == re.compile('\[[\d]+\]'):
-            #             list.pop(g_hcheck, i)
-            #
-            #     star_hname = []
-            #     star_hevent = []
-            #     for i in g_hcheck:
-            #         s_hname = i.split('G', maxsplit=1)[0]
-            #         s_hevent = i.replace(s_hname, '')
-            #         star_hname.append(s_hname)
-            #         star_hevent.append(s_hevent)
-            # else:
-            #     star_hname = []
-            #     star_hevent = []
-            #
-            # # get a_goal event
-            # fagoal = match_info.find(attrs='fagoal')
-
-            # if fagoal != '':
-            # g_acheck = fagoal.text.replace(',', 'mergeupG ').split('\'')
-            # for i, item in enumerate(g_acheck):
-            #     if 'mergeupG' in item:
-            #         g_acheck[i - 1] += f",{item.replace('mergeup', ' ')}"
-            #         list.pop(g_acheck, i)
-            #     if item == '':
-            #         list.pop(g_acheck, i)
-            #     if item == re.compile('\[[\d]+\]'):
-            #         list.pop(g_acheck, i)
-            #
-            #     star_aname = []
-            #     star_aevent = []
-            #     for i in g_acheck:
-            #         s_aname = i.split('G', maxsplit=1)[0]
-            #         s_aevent = i.replace(s_aname, '')
-            #         star_aname.append(s_aname)
-            #         star_aevent.append(s_aevent)
-            # else:
-            #     star_aname = []
-            #     star_aevent = []
 
             # get starting tag
             # tag_starting_table = match_info.findNextSiblings('table', limit=2)[1]
@@ -330,32 +375,33 @@ for url_main in urls:
                             '2196', '2252']:
                 tag_starting_table = match_info.nextSibling.nextSibling.nextSibling
             elif match_id == 'w/o detail in /wiki/Walkover':
-                # tiep theo
+                pass
             else:
                 tag_starting_table = match_info.nextSibling.nextSibling
-            # for some match with no starting info
+
+            # for some matches without starting info
             if tag_starting_table.name not in ['h3', 'h2', 'link', 'style']:
                 # get tag of home team starting
                 # change tag_h and tag_a in some match by matchid
                 if match_id in ['2350', '2352']:
                     tag_h = tag_starting_table.tr.tr.findChildren("td",
-                                                                  recursive=False)[
-                        0]
+                                     recursive=False)[0]
                 else:
                     tag_h = \
                         tag_starting_table.tr.findChildren("td",
-                                                           recursive=False)[0]
+                                       recursive=False)[0]
 
                 # get tag of away team starting
                 if match_id in ['2350', '2352']:
                     tag_a = tag_starting_table.tr.tr.findChildren("td",
-                                                                  recursive=False)[
-                        -1]
+                                     recursive=False)[-1]
                 else:
-                    tag_a = \
-                        tag_starting_table.tr.findChildren("td",
-                                                           recursive=False)[
-                            -1]
+                    tag_a = tag_starting_table.tr.findChildren("td",
+                                     recursive=False)[-1]
+
+                # collect starting data of home team: role, shirt number,
+                # fullname, discipline, in_out
+                # -> df_hdata
                 row = []
                 hdata1 = []
                 for tr in tag_h.find_all('tr'):
@@ -367,6 +413,9 @@ for url_main in urls:
                 if len(df_hdata) >= 1:
                     df_hdata = df_hdata.drop(index=len(df_hdata) - 1)
 
+                # collect starting data of away team: role, shirt number,
+                # fullname, discipline, in_out
+                # -> df_adata
                 row = []
                 adata1 = []
                 for tr in tag_a.table.find_all('tr'):
@@ -378,17 +427,86 @@ for url_main in urls:
                 if len(df_adata) >= 1:
                     df_adata = df_adata.drop(index=len(df_adata) - 1)
 
+                # make dataframe by concate match_id, null series df_hdata,
+                # null series, null series, null series, df_ahata
+                # -> df_starting
                 df_starting = pd.concat(
-                    [pd.Series(match_id), df_hdata, df_adata], axis=1)
-                df_starting.columns = ['MatchID', 'HT Role', 'HT Shirt Number',
-                                       'HT Fullname', 'HT Discipline',
+                    [pd.Series(match_id),pd.Series(None, name='HT Captain', dtype='int64'), df_hdata, pd.Series(None, name='HT Goal', dtype='float64'), pd.Series(None, name='AT Goal', dtype='float64'), pd.Series(None, name='AT Captain', dtype='int64'), df_adata], axis=1)
+                df_starting.columns = ['MatchID',
+                                       'HT Captain',
+                                       'HT Role',
+                                       'HT Shirt Number',
+                                       'HT Fullname',
+                                       'HT Discipline',
                                        'HT In_Out',
+                                       'HT Goal',
+                                       'AT Goal',
+                                       'AT Captain',
                                        'AT Role',
-                                       'AT Shirt Number', 'AT Fullname',
-                                       'AT Discipline', 'AT In_Out'
-
+                                       'AT Shirt Number',
+                                       'AT Fullname',
+                                       'AT Discipline',
+                                       'AT In_Out'
                                        ]
+
+                # paste match_id for all value in column MatchID
                 df_starting['MatchID'] = match_id
+
+                # cut symbol (c) from fullname to captain
+                copy_of_ht_fullname = df_starting['HT Fullname'].copy()
+                copy_of_ht_captain = df_starting['HT Captain'].copy()
+                for i, name in enumerate(copy_of_ht_fullname):
+                    cap_symbol = '(c)'
+                    name = str(name)
+                    if cap_symbol in name:
+                        copy_of_ht_captain[i] = 1
+                        new_name_h = name.split(cap_symbol)[0]
+                        copy_of_ht_fullname[i] = new_name_h
+                df_starting['HT Fullname'] = copy_of_ht_fullname
+                df_starting['HT Captain'] = copy_of_ht_captain
+
+                copy_of_at_fullname = df_starting['AT Fullname'].copy()
+                copy_of_at_captain = df_starting['AT Captain'].copy()
+                for i, name in enumerate(copy_of_at_fullname):
+                    cap_symbol = '(c)'
+                    name = str(name)
+                    if cap_symbol in name:
+                        copy_of_at_captain[i] = 1
+                        new_name_a = name.split(cap_symbol)[0]
+                        copy_of_at_fullname[i] = new_name_a
+                df_starting['AT Fullname'] = copy_of_at_fullname
+                df_starting['AT Captain'] = copy_of_at_captain
+
+                # concate 2 df: df_hgoal and df_agoal into df_starting
+                df_starting = pd.concat([df_starting, df_hgoal, df_agoal], axis=1)
+                df_starting = df_starting.replace(to_replace=r'^\s+', value='', regex=True)
+                df_starting = df_starting.replace(to_replace=r'\s+$', value='', regex=True)
+
+                # check for row index of matched starname and fullname (of both AT, HT)
+                row_value_dict = check_loc(df_starting,'Starname_h', 'Starname_a', 'HT Fullname', 'AT Fullname', 'Goal_eventh', 'Goal_eventa')
+
+                copy_of_ht_goal = df_starting['HT Goal'].copy()
+                for row in row_value_dict[0]:
+                    value_h = row_value_dict[0][row]
+                    copy_of_ht_goal.loc[row] = value_h
+                df_starting['HT Goal'] = copy_of_ht_goal
+
+                copy_of_at_goal = df_starting['AT Goal'].copy()
+                for row in row_value_dict[1]:
+                    value_a = row_value_dict[1][row]
+                    copy_of_at_goal.loc[row] = value_a
+                df_starting['AT Goal'] = copy_of_at_goal
+
+                # df_starting.drop(columns=['Starname_h', 'Starname_a', 'Goal_eventh', 'Goal_eventa'])
+
+
+
+                # row_value_dict = check_loc(df_check, 'col3', 'col3', 'col_target', 'col4')
+                #
+                # for row in row_value_dict:
+                #     print(df_check.loc[row]['col4'])
+                #     df_check.loc[row]['col2'] = row_value_dict[row]
+
 
                 # # append collecting data of the current match to corresponding columns of sheet Match Details
                 # print(
@@ -429,38 +547,7 @@ for url_main in urls:
                 # append collecting data of current match to corresponding columns of sheet All Matches
             df_group_matches = pd.concat([df_group_matches, df_matches])
         url_main = url_temp1
-    # # append to total
-    # df_total_matches = pd.concat([df_total_matches, df_group_matches])
-    # df_total_starting = pd.concat([df_total_starting, df_group_starting])
 
-    # # clear df_total_group_starting for next round
-    # df_group_starting = pd.DataFrame(None, columns=['MatchID',
-    #                                                       'HT Role',
-    #                                                       'HT Shirt Number',
-    #                                                       'HT Fullname',
-    #                                                       'HT Discipline',
-    #                                                       'HT In_Out',
-    #                                                       'AT Role',
-    #                                                       'AT Shirt Number',
-    #                                                       'AT Fullname',
-    #                                                       'AT Discipline',
-    #                                                       'AT In_Out'])
-    #
-    # # clear df_total_group_all_matches for next round
-    # df_group_all_matches = pd.DataFrame(None,
-    #                                           columns=['Year', 'Stage',
-    #                                                    'Date', 'Time',
-    #                                                    'Stadium',
-    #                                                    'Location',
-    #                                                    'Home Team',
-    #                                                    'HT Goals',
-    #                                                    'AT Goals',
-    #                                                    'Away Team',
-    #                                                    'Match Attendance',
-    #                                                    'MatchID'
-    #                                                    ])
-
-
-
+# export to file excel
 df_group_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
 df_group_starting.to_excel('Fifa_world_cup_matchDetails.xlsx', sheet_name='Match Details')
