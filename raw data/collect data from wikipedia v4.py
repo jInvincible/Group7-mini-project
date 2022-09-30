@@ -71,31 +71,32 @@ df_group_matches = pd.DataFrame(None, columns=['Year',
                                                'AT Goals',
                                                'Away Team',
                                                'Match Attendance',
-                                               'MatchID'
+                                               'MatchID',
+                                               'Refer'
                                                ])
 
 y_ff = [
-    # '1930',
-    # '1934',
-    '1938'#,
-    # '1950',
-    # '1954',
-    # '1958',
-    # '1962',
-    # '1966',
-    # '1970',
-    # '1974',
-    # '1978',
-    # '1982',
-    # '1986',
-    # '1990',
-    # '1994',
-    # '1998',
-    # '2002',
-    # '2006',
-    # '2010',
-    # '2014',
-    # '2018'
+    '1930',
+    '1934',
+    '1938',
+    '1950',
+    '1954',
+    '1958',
+    '1962',
+    '1966',
+    '1970',
+    '1974',
+    '1978',
+    '1982',
+    '1986',
+    '1990',
+    '1994',
+    '1998',
+    '2002',
+    '2006',
+    '2010',
+    '2014',
+    '2018'
 ]
 
 
@@ -113,21 +114,24 @@ def replace_tags_with_labels(html, replacements=REPLACEMENTS):
     return str(soup)
 
 
-def allocate_corresponding_data_columns(adata, pattern_list=pattern_list):
+def allocate_corresponding_data_columns(data, pattern_list=pattern_list):
     # create a_dic to receive value
     a_dic = {0: [], 1: [], 2: [], 3: [], 4: []}
 
     for i, pattern in enumerate(pattern_list):
-        for text in adata:
+        for text in data:
             try:
-                if re.search(pattern, text[i]):
-                    a_dic[i] += [text[i]]
-                else:
-                    a_dic[i] += ['None']
+                for iw, word in enumerate(text):
+                    if re.search(pattern, word): # re.search(pattern, word)
+                        a_dic[i] += [word]
+                        break
+                    elif word == text[-1]:
+                        a_dic[i] += ['None']
+                        break
             except IndexError:
                 # if check latest row after Manager role, keep Manager name
-                if text == adata[-2] and i == 2:
-                    a_dic[i] += [adata[-1][0]]
+                if text == data[-2] and i == 2:
+                    a_dic[i] += [data[-1][0]]
                 else:
                     a_dic[i] += ['None']
     return a_dic
@@ -239,7 +243,7 @@ for url_main in urls:
 
 
     # # for testing-only, remove for full execute
-    all_round_list = ['final tournament']
+    # all_round_list = ['qualification']
 
     for rounds in all_round_list:
         # make a backtup url
@@ -262,31 +266,33 @@ for url_main in urls:
 
             # get match_id, for missing matchid, receive 'missing'
             if match_info.find('a', text='Report') == None:
-                match_id = 'missing'
+                if match_info.find(attrs='fscore').text.find('awarded') == -1:
+                    match_id = 'missing'
+                else:
+                    match_id = 'awarded'
                 match_refer = 'missing'
             else:
                 match_id = re.search(
                     '[\d]+(?=\/$)|[\d]+$|[\d]+(?=\/i)|[\d]+(?=\/r)|[\d]+(?=/\#)',
                     match_info.find('a', text='Report')['href']).group(0)
                 match_refer = match_info.find('a', text='Report')['href']
-
             # name : home team + away team
             home_team_name = match_info.find(attrs='fhome').text.replace('\xa0','')
             away_team_name = match_info.find(attrs='faway').text.replace('\xa0','')
 
             # check tag_fscore_a and receive HT F Score + AT F Score + time
-            tag_fscore_a = match_info.find(attrs='fscore').find('a')
+            tag_fscore_has_link = match_info.find(attrs='fscore').find('a')
             slash_text = re.search('[\D]+', match_info.find(attrs='fscore').text).group(0)
 
             # when tag_fscore_a persist
-            if tag_fscore_a != None:
-                a_href = tag_fscore_a['href']
+            if tag_fscore_has_link != None:
+                a_href = tag_fscore_has_link['href']
                 # handle 2018, 2014, 2010, 2006, 1970, 1954 note, extra time note, overtime
-                if '2018' not in a_href and '2014' not in a_href and '2010' not in a_href and '2006' not in a_href and '1970' not in a_href and '1954' not in a_href and 'Extra_time' not in a_href and 'Overtime' not in a_href:
-                    match_id = f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
-                    home_team_f_score = f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
-                    away_team_f_score = f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
-                    match_time = f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
+                if '2018' not in a_href and '2014' not in a_href and '2010' not in a_href and '2006' not in a_href and '1970' not in a_href and '1954' not in a_href and 'Extra_time' not in a_href and 'Overtime' not in a_href and '1934' not in url_main:
+                    match_id = f"{tag_fscore_has_link.text} detail in {tag_fscore_has_link['href']}"
+                    home_team_f_score = f"{tag_fscore_has_link.text} detail in {tag_fscore_has_link['href']}"
+                    away_team_f_score = f"{tag_fscore_has_link.text} detail in {tag_fscore_has_link['href']}"
+                    match_time = f"{tag_fscore_has_link.text} detail in {tag_fscore_has_link['href']}"
                 else:
                     home_team_f_score = \
                         match_info.find(attrs='fscore').text.split(slash_text)[0]
@@ -302,7 +308,7 @@ for url_main in urls:
                 home_team_f_score = \
                 match_info.find(attrs='fscore').text.split(slash_text)[0]
                 away_team_f_score = \
-                match_info.find(attrs='fscore').text.split(slash_text)[1]
+                match_info.find(attrs='fscore').text.split(slash_text)[1].replace('(d)','')
                 if '1934' in url_main or '1938' in url_main:
                     match_time = 'missing'
                     check_time = 'missing'
@@ -361,8 +367,8 @@ for url_main in urls:
 
             # attendance
             if match_id == 'w/o detail in /wiki/Walkover':
-                match_attendance = f"{tag_fscore_a.text} detail in {tag_fscore_a['href']}"
-            elif match_info.find(attrs='fscore').text.find('awarded') != '':
+                match_attendance = f"{tag_fscore_has_link.text} detail in {tag_fscore_has_link['href']}"
+            elif match_info.find(attrs='fscore').text.find('awarded') != -1:
                 match_attendance = 'missing'
             else:
                 match_attendance = re.search('[\d,]+', re.search('Attendance[^<>]+',
@@ -374,7 +380,7 @@ for url_main in urls:
             # tag_starting_table = match_info.findNextSiblings('table', limit=2)[1]
             # change tag_starting location in some match by matchid
             if match_id in ['1689', '2350', '2454', '2352', '2431', '2220',
-                            '2196', '2252'] or rounds == 'final tournament':
+                            '2196', '2252', '1146']:
                 tag_starting_table = match_info.nextSibling.nextSibling.nextSibling
             elif match_id == 'w/o detail in /wiki/Walkover':
                 pass
@@ -542,7 +548,8 @@ for url_main in urls:
                  'AT Goals': [away_team_f_score],
                  'Away Team': [away_team_name],
                  'Match Attendance': [match_attendance],
-                 'MatchID': [match_id]
+                 'MatchID': [match_id],
+                 'Refer': [match_refer]
                  })
             print(f'WorldCup {match_year} : {rounds} :: MatchID = {match_id}')
 
