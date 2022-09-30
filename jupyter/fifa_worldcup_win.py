@@ -20,16 +20,16 @@ ff_defails.info()
 # %%
 ff_matches = ff_matches.drop(columns=ff_matches.columns[0])
 ff_defails = ff_defails.drop(columns=ff_defails.columns[0])
-# %% count number of value 'missing'
-ff_matches.value_counts()
 
 # %% change value 'missing' to '' from column [Time]
 ff_matches['Time'][ff_matches['Time'] == 'missing'] = ff_matches['Time'].replace(to_replace='missing', value='')
+
 # %%
 ff_matches['Time'][ff_matches['Time'] == 'w/o detail in /wiki/Walkover'] = ff_matches['Time'].replace(to_replace='w/o detail in /wiki/Walkover', value='')
 
 # %%
 ff_matches['Time'][ff_matches['Time'] == 'missing']
+
 # %%
 ff_matches['Time'][ff_matches['Time'] == 'w/o detail in /wiki/Walkover']
 
@@ -71,21 +71,22 @@ ff_matches['Time'] = pd.to_datetime(ff_matches['Time'])
 ff_matches['Winstats'] = 0
 ff_matches['New HT Goals'] = ff_matches['HT Goals'].copy()
 ff_matches['New AT Goals'] = ff_matches['AT Goals'].copy()
+
 # %% drop row w/o
-mask = ff_matches['AT Goals']=='w/o detail in /wiki/Walkover'
-# %%
-ff_matches.loc[mask,'AT Goals'] = '0'
-ff_matches.loc[mask,'HT Goals'] = '1'
-ff_defails.loc[mask,'Winstats'] = 1
-# %% create column New HT Goals
-ff_matches['New HT Goals'].replace(to_replace=re.compile('\D+'), value='', regex=True)
-# %% create column New AT Goals
-ff_matches['New AT Goals'].replace(to_replace=re.compile('\D+'), value='', regex=True)
-# %% astype to int the 3 columns above
-ff_matches['New HT Goals'].astype('int64')
-ff_matches['New AT Goals'].astype('int64')
-ff_matches['Winstats'].astype('int64')
+mask = ff_matches['New AT Goals']=='w/o detail in /wiki/Walkover'
 
 # %%
-ff_matches['Winstats'][ff_matches['HT Goals']-ff_matches['AT Goals']>0] = 1
-# %%
+ff_matches.loc[mask,'New AT Goals'] = '0'
+ff_matches.loc[mask,'New HT Goals'] = '1'
+ff_matches.loc[mask,'Winstats'] = 1
+
+# %% replace unnumeric chatacters from New HT Goals, New AT Goals
+ff_matches[['New AT Goals','New HT Goals']] = ff_matches[['New AT Goals','New HT Goals']].replace('\D+','', regex=True)
+
+# %% astype to int the 2 columns above
+ff_matches[['New HT Goals', 'New AT Goals']] = ff_matches[['New HT Goals', 'New AT Goals']].astype('int64')
+# %% set Winstats = 1 if values in New HT Goals larger than New AT Goals
+ff_matches['Winstats'][ff_matches['New HT Goals']-ff_matches['New AT Goals']>0] = 1
+# %% set Winstats = -1 if values in New HT Goals smaller than New AT Goals
+ff_matches['Winstats'][ff_matches['New HT Goals']-ff_matches['New AT Goals']< 0] = -1
+
