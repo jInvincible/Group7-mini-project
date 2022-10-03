@@ -35,7 +35,7 @@ REPLACEMENTS = [
 # card_pattern = re.compile(
 #     '\\b(Y\\xa0[\d]{1,2})|\\bR(\\xa0[\d]{1,2})|\\b(RSY)\\xa0[\d]{1,2}')
 # in_out_pattern = re.compile('\\b[O|I](\\xa0)[\d]{1,2}')
-pattern_list = ['\\b[A-Z]{2}\\b|Manager.',
+pattern_list = ['\\b[A-Z]{2}\\b|.+Manager.+',
                 '\\b[\d]{1,2}\\b',
                 '[\sa-zA-Z\-]{3,}[\sa-zA-Z\-]{3,}(\(c\))?',
                 '\\b(Y\\xa0[\d]{1,2})|\\bR(\\xa0[\d]{1,2})|\\b(RSY)\\xa0[\d]{1,2}',
@@ -116,24 +116,24 @@ def replace_tags_with_labels(html, replacements=REPLACEMENTS):
 
 def allocate_corresponding_data_columns(data, pattern_list=pattern_list):
     # create a_dic to receive value
+    # 0: role pattern = '\\b[A-Z]{2}\\b|.*Manager.*'
+    # 1: shirt number pattern = '\\b[\d]{1,2}\\b'
+    # 2: fullname pattern = '[\sa-zA-Z\-]{3,}[\sa-zA-Z\-]{3,}(\(c\))?'
+    # 3: discipline pattern = '\\b(Y\\xa0[\d]{1,2})|\\bR(\\xa0[\d]{1,2})|\\b(RSY)\\xa0[\d]{1,2}'
+    # 4: in_out pattern = '\\b[O|I](\\xa0)[\d]{1,2}'
+    
     a_dic = {0: [], 1: [], 2: [], 3: [], 4: []}
-
-    for i, pattern in enumerate(pattern_list):
+    
+    #compare input data with each pattern then assign the matching to corresponding position(key) with the corresponding value(key value)
+    for i, pattern in enumerate(pattern_list):        
         for text in data:
-            try:
-                for iw, word in enumerate(text):
-                    if re.search(pattern, word): # re.search(pattern, word)
-                        a_dic[i] += [word]
-                        break
-                    elif word == text[-1]:
-                        a_dic[i] += ['None']
-                        break
-            except IndexError:
-                # if check latest row after Manager role, keep Manager name
-                if text == data[-2] and i == 2:
-                    a_dic[i] += [data[-1][0]]
-                else:
+            for word in text:
+                if re.search(pattern, word): # re.search(pattern, word)
+                    a_dic[i] += [word]
+                    break
+                elif word == text[-1]:
                     a_dic[i] += ['None']
+                    break           
     return a_dic
 
 
@@ -243,7 +243,7 @@ for url_main in urls:
 
 
     # # for testing-only, remove for full execute
-    # all_round_list = ['qualification']
+    # all_round_list = ['Group 1']
 
     for rounds in all_round_list:
         # make a backtup url
@@ -425,7 +425,10 @@ for url_main in urls:
                         hdata1.append(row)
                     hdata = allocate_corresponding_data_columns(hdata1)
                     df_hdata = pd.DataFrame(hdata)
-                    if len(df_hdata) >= 1:
+                    if len(df_hdata) > 2:                        
+                        h_manager_name = df_hdata.iloc[-1,2]
+                        df_hdata.iloc[-2, 0] = 'Manager'
+                        df_hdata.iloc[-2, 2] = h_manager_name
                         df_hdata = df_hdata.drop(index=len(df_hdata) - 1)
 
                     # collect starting data of away team: role, shirt number,
@@ -439,7 +442,10 @@ for url_main in urls:
                         adata1.append(row)
                     adata = allocate_corresponding_data_columns(adata1)
                     df_adata = pd.DataFrame(adata)
-                    if len(df_adata) >= 1:
+                    if len(df_adata) > 2:
+                        a_manager_name = df_adata.iloc[-1,2]
+                        df_adata.iloc[-2, 0] = 'Manager'
+                        df_adata.iloc[-2, 2] = a_manager_name
                         df_adata = df_adata.drop(index=len(df_adata) - 1)
 
                 # make dataframe by concat match_id, null series df_hdata,
@@ -562,5 +568,5 @@ for url_main in urls:
         url_main = url_temp1
 
 # export to file excel
-df_group_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
+# df_group_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
 df_group_starting.to_excel('Fifa_world_cup_matchDetails.xlsx', sheet_name='Match Details')

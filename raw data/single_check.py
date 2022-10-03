@@ -98,3 +98,6 @@ for name in list_check:
             name = name.split('(')[0]
         star_event_dict[name] = []
         key = name
+
+
+
