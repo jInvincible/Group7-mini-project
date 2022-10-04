@@ -204,28 +204,17 @@ ax.set_title(label='Top 10 Countries of Winning Rate of WorldCup')
 # show graph
 plt.show()
 
+# %%
+# import regions_list
+regions_list = pd.read_excel('regions_list.xlsx', sheet_name='sheet1')
 
 # %%
-# create columns Region
-# regions_list = pd.read_excel('List of countries by regional classification.xlsx', sheet_name='Region List')
+temp_merged = pd.merge(left=df_winrate_of_country, right=regions_list, left_on=df_winrate_of_country.index, how='left',right_on=regions_list['index'])
 
-# df_winrate_of_country['Region'] = 0
-
-# %%
-# df_winrate_of_country = df_winrate_of_country.reset_index()
-# %%
-# def map_region(element):
-#     if element == regions_list['']
-
-# df_winrate_of_country['Region'] = df_winrate_of_country['index'].apply(map_region)
-# %%
-# mask = [df_winrate_of_country['index'].isin(regions_list['Country'])]
+#%%
+temp_merged = temp_merged.drop(columns=['index'])
 
 # %%
-temp_merged = pd.merge(left=df_winrate_of_country, right=regions_list, left_on=df_winrate_of_country['index'], how='left',right_on=regions_list['Country'])
-temp_merged = temp_merged.drop(columns=['Region_x', 'Country', 'Global South'])
-# %%
-# null_value = temp_merged['Region_y'].isnull().sum()
-# %%
-# temp_merged.to_excel('winrate.xlsx', sheet_name='sheet1')
+top_5_winrate_region = temp_merged.pivot_table(index='Region_y', aggfunc='mean').sort_values(by='win')[['win', 'draw', 'lose']]
+
 # %%
