@@ -109,9 +109,16 @@ for title in Genre:
 
 plt.legend()
 plt.show()
+
 # %%
+plt.figure(figsize=(10,8))
+area = [top3_Genre_sale_NA, top3_Genre_sale_EU, top3_Genre_sale_JP, top3_Genre_sale_Other]
+for i, place in enumerate(area):
+  plt.subplot(2,2,i+1)
+  plt.bar(place['Genre'],place[place.columns[-1]])
+  plt.title(place.columns[-1])
 
 
-
+# %%
 
 # %%

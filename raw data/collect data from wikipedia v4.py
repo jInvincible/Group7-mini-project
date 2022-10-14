@@ -57,7 +57,9 @@ df_group_starting = pd.DataFrame(None, columns=['MatchID',
                                                 'AT Shirt Number',
                                                 'AT Fullname',
                                                 'AT Discipline',
-                                                'AT In_Out'
+                                                'AT In_Out',
+                                                'Home Team',
+                                                'Away Team',
                                                 ])
 
 df_group_matches = pd.DataFrame(None, columns=['Year',
@@ -455,7 +457,7 @@ for url_main in urls:
                     [pd.Series(match_id), pd.Series(match_refer),pd.Series(None, name='HT Captain', dtype='int64'),
                      df_hdata, pd.Series(None, name='HT Goal', dtype='float64'),
                      pd.Series(None, name='AT Goal', dtype='float64'),
-                     pd.Series(None, name='AT Captain', dtype='int64'), df_adata], axis=1)
+                     pd.Series(None, name='AT Captain', dtype='int64'), df_adata, pd.Series(None, name='Home Team', dtype='float64'), pd.Series(None, name='Away Team', dtype='float64')], axis=1)
                 df_starting.columns = ['MatchID',
                                        'Refer',
                                        'HT Captain',
@@ -471,13 +473,17 @@ for url_main in urls:
                                        'AT Shirt Number',
                                        'AT Fullname',
                                        'AT Discipline',
-                                       'AT In_Out'
+                                       'AT In_Out',
+                                       'Home Team',
+                                       'Away Team',
                                        ]
 
                 # paste match_id for all value in column MatchID
                 df_starting['MatchID'] = match_id
                 df_starting['Refer'] = match_refer
-
+                df_starting['Home Team'] = home_team_name
+                df_starting['Away Team'] = away_team_name
+                
                 # cut symbol (c) from fullname to captain
                 copy_of_ht_fullname = df_starting['HT Fullname'].copy()
                 copy_of_ht_captain = df_starting['HT Captain'].copy()
@@ -563,10 +569,10 @@ for url_main in urls:
             df_group_starting = pd.concat(
                     [df_group_starting, df_starting])
 
-                # append collecting data of current match to corresponding columns of sheet All Matches
+            # append collecting data of current match to corresponding columns of sheet All Matches
             df_group_matches = pd.concat([df_group_matches, df_matches])
         url_main = url_temp1
 
 # export to file excel
-# df_group_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
+df_group_matches.to_excel('Fifa_world_cup_allMatches.xlsx', sheet_name='All Matches')
 df_group_starting.to_excel('Fifa_world_cup_matchDetails.xlsx', sheet_name='Match Details')
