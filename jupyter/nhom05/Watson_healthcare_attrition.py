@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Optional
+import seaborn as sns
 
 
 # %% 
@@ -64,12 +65,37 @@ df = df.replace(to_replace=r'\s+$', value='', regex= True)
 # (Rarely -> Travel_Rarely)
 df['BusinessTravel'] = df['BusinessTravel'].replace(to_replace='Rarely', value='Travel_Rarely', regex= False)
 
+# drop unused columns:
+df = df.drop(columns=['EmployeeCount','StandardHours','EmployeeID'])
+
 # uppercase first charracter using title
 # list out all object columns
 obj_cols_list = df.select_dtypes(include=['object']).columns.to_list()
 for col in obj_cols_list:
     df[col] = df[col].str.title()
     
+    
+# %%
+df_yes = df.loc[df['Attrition'] == 'Yes']
+df_yes = df_yes.dropna()
+sum_yes = len(df_yes)
+
+# %%
+df_yes
+
+
+# %%
+# display columns values
+column_values = {}
+for col in obj_cols_list:
+    values = df_yes[col].unique().tolist()
+    for value in values:
+        if col not in column_values:
+            column_values[col] = [value]
+        else:
+            column_values[col] += [value]
+column_values
+
 
 # %%
 # generate data groupby each column and column 'Attrition'
@@ -82,17 +108,17 @@ for column in df.columns:
     if column != 'Attrition':
         tmp_b = data1[column]
         tmp_b = tmp_b.rename(columns={'Attrition': 'Count'}).reset_index()
-        tmp = pd.DataFrame({column: None, 'No': None, 'Yes': None}, index=[])
+        tmp = pd.DataFrame({column: None, 'No': None, 'Yes': None, 'Yes pct': None}, index=[])
         for biz in set(tmp_b[column]):
-            if (tmp_b[((tmp_b[column]==biz) & (tmp_b['Attrition']=='Yes'))]['Count']).empty: # 'Yes' = 0 if no 'Attrition' == 'Yes'
+            if (tmp_b[((tmp_b[column]==biz) & (tmp_b['Attrition']=='Yes'))]['Count']).empty: # 'Yes' = 0 if no 'Attrition' == 'Yes' matches
                 yes = 0
             else:
                 yes = int(tmp_b[((tmp_b[column]==biz) & (tmp_b['Attrition']=='Yes'))]['Count'])
-            if (tmp_b[((tmp_b[column]==biz) & (tmp_b['Attrition']=='No'))]['Count']).empty: # 'No' = 0 if no 'Attrition' == 'No'
+            if (tmp_b[((tmp_b[column]==biz) & (tmp_b['Attrition']=='No'))]['Count']).empty: # 'No' = 0 if no 'Attrition' == 'No' matches
                 no = 0
             else:
                 no = int(tmp_b[((tmp_b[column]==biz) & (tmp_b['Attrition']=='No'))]['Count'])
-            btemp = pd.DataFrame({column: biz, 'No': no, 'Yes': yes}, index=[1])
+            btemp = pd.DataFrame({column: biz, 'No': no, 'Yes': yes, 'Yes pct': yes/sum_yes}, index=[1])
             tmp = pd.concat([tmp,btemp])
         data[column] = tmp.copy()
         
@@ -111,9 +137,9 @@ def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel
     # define figure size base on maximun of drawing bars
     if fgsize == None: # define figure size if no input
         if top >= 100:
-            fgsize = (25,7)
+            fgsize = (50,14)
         elif top < 100 and top >= 40:
-            fgsize = (20,7)
+            fgsize = (25,8)
         elif top < 40 and top >= 20:
             fgsize = (10,7)
         else:
@@ -157,6 +183,7 @@ def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel
     # create data for yes_bar, no_bar
     yes_bar = df_chart['Yes'].to_list()
     no_bar = df_chart['No'].to_list()
+    yes_pct = df_chart['Yes pct'].to_list()
     
     # create list of bar_names bar_names_dict={'1': 'mot'}, df_chart[column] = 1
     if bar_names_dict == None:
@@ -183,9 +210,21 @@ def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel
 
     ax.bar(r, yes_bar, color='#af0b1e', edgecolor='white',width= bar_thick, label = 'Yes') # drawing yes_bar
     ax.bar(r, no_bar, bottom = yes_bar, color='#18384e', edgecolor='white', width= bar_thick, label = 'No') # drawing no_bar
+    
+    # get chart_ymax and chart_xmax
+    chart_max = ax.get_ylim()[1]
+    chart_xmax = ax.get_xlim()[1]
+    
+    # add yes pct
+    for idx in r:
+        if yes_bar[idx] > 0:
+            if len(df_chart[column]) > 7:
+                ax.text(x=idx, y=yes_bar[idx]+no_bar[idx]+chart_max*0.02, s=f'{round(yes_pct[idx]*100,2)}%', rotation = 90, ha='center', va = 'bottom', color = 'white')
+            else:
+                ax.text(x=idx, y=yes_bar[idx]+no_bar[idx]+chart_max*0.02, s=f'{round(yes_pct[idx]*100,2)}%', ha='center', va = 'bottom', color = 'white')   
 
     # add legend
-    ax.legend(loc='upper left', bbox_to_anchor=(1,1))
+    ax.legend(loc='upper left', bbox_to_anchor=(1,1), labels=['Yes', 'No'])
 
     # custom axis
     plt.xticks(r, bar_names, rotation = bar_names_rotation) # set the name for each Bar
@@ -200,10 +239,9 @@ def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel
     # add a line
     ax.axline(xy1=(0,chart_y_max), xy2=(15,chart_y_max) , ls=':', color = 'orange')
     ax.axline(xy1=(0,chart_y_mean), xy2=(15,chart_y_mean) , ls=':', color = 'white')
+    
 
-    # add text for line
-    chart_max = ax.get_ylim()[1]
-    chart_xmax = ax.get_xlim()[1]
+    # add text for line    
     ax.text(x=chart_xmax+0.2, y=chart_y_max+chart_max*0.02, s=f'max = {chart_y_max}')
     ax.text(x=chart_xmax+0.2, y=chart_y_mean-chart_max*0.02, s=f'mean = {chart_y_mean}')
 
@@ -220,7 +258,7 @@ draw_this_column(column=column)
 
 # %%
 column = 'BusinessTravel'
-draw_this_column(column=column, bar_names_dict={'Travel_Rarely': 'Rarely', 'Travel_Frequently': 'Frequently', 'Non-Travel': 'Non'})
+draw_this_column(column=column, bar_names_dict={'Travel_Rarely': 'Hiếm', 'Travel_Frequently': 'Thường xuyên', 'Non-Travel': 'Không'})
 
 
 # %%
@@ -371,3 +409,5 @@ draw_this_column(column=column)
 # %%
 column = 'YearsWithCurrManager'
 draw_this_column(column=column)
+
+# %%
