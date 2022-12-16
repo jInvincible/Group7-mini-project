@@ -1,5 +1,8 @@
 # %% 
 # Import libraries
+from re import A
+from tokenize import group
+from unicodedata import category
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -125,7 +128,7 @@ for column in df.columns:
 
 # %%
 # define function 'draw_this_column' for data
-def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel=None, chart_title=None, bar_names_dict:Optional[dict]=None, bar_names_rotation=None):
+def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel=None, chart_title=None, bar_names_dict:Optional[dict]=None, bar_names_rotation=None, sort_by='Attrition'):
     a_chart_data=data[column]
     
     # create chart settings
@@ -146,7 +149,14 @@ def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel
             fgsize = (top/2+1,7) 
     bar_thick = 0.5 # define bar_thick
     df_chart = a_chart_data.copy()
-    df_chart = df_chart.sort_values(by=['Yes', column], ascending=False, ignore_index=True).head(top) # define top data
+    # sort by attrition = yes DESC| sort by column name ASC | no sort
+    if sort_by == 'Attrition':
+        df_chart = df_chart.sort_values(by=['Yes', column], ascending=False, ignore_index=True).head(top) # define top data
+    elif sort_by == column:
+        df_chart = df_chart.sort_values(by=column, ascending=True, ignore_index=True).head(top)
+    else:
+        df_chart = df_chart.head(top)
+        
     chart_y_mean = round(df_chart['Yes'].mean(),2) # define chart mean of yes_bar 
     chart_y_max = df_chart['Yes'].max() # define chart max of yes_bar
     
@@ -253,7 +263,7 @@ def draw_this_column(column=column, fgsize=None, chart_xlabel=None, chart_ylabel
 
 # %%
 column = 'Age'
-draw_this_column(column=column)
+draw_this_column(column=column,sort_by=column)
 
 
 # %%
@@ -366,9 +376,9 @@ column = 'RelationshipSatisfaction'
 draw_this_column(column=column)
 
 
-# %%
-column = 'StandardHours'
-draw_this_column(column=column)
+# # %%
+# column = 'StandardHours'
+# draw_this_column(column=column)
 
 
 # %%
@@ -410,4 +420,31 @@ draw_this_column(column=column)
 column = 'YearsWithCurrManager'
 draw_this_column(column=column)
 
+# %%
+ages_list = [[18, 19, 20, 21],
+             [22, 23, 24, 25],
+             [26, 27, 28, 29],
+             [30, 31, 32, 33],
+             [34, 35, 36, 37],
+             [38, 39, 40, 41]]
+grouped_by_ages = {}
+for age in ages_list:
+    df_temp = pd.DataFrame(None)
+    for num in age:
+        df_temp1 = df_yes.loc[df_yes['Age'] == num]
+        df_temp = pd.concat([df_temp, df_temp1])
+    df_temp = df_temp.drop_duplicates(ignore_index=True)
+    cate_dict = {}
+    for column in df_temp.columns:        
+        if column != 'Age' and column != 'Attrition' and column != 'Over18':
+            temp = df_temp[column].unique().tolist()          
+            list.sort(temp)
+            if column not in cate_dict:
+                cate_dict[column] = temp
+            else:
+                cate_dict[column] += temp
+    grouped_by_ages[str(age)] = cate_dict
+
+category_result = pd.DataFrame(grouped_by_ages)
+category_result
 # %%
